@@ -1,6 +1,6 @@
 import express, {Request, Response, NextFunction}  from "express";
 import { AppDataSource } from "./data-source";
-import userRoutes from "./users/users.routes"
+import userRoutes from "./user/user.routes"
 import expenseRoutes from "./expense/expense.routes";
 
 const app = express();

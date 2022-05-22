@@ -1,5 +1,5 @@
 import Express from "express";
-import {getUser, registerUser, deleteUser, patchUser, login} from "./users.controller"
+import {getUser, registerUser, deleteUser, patchUser, login} from "./user.controller"
 
 function userRoutes(app: Express.Application) {
     app.get("/api/v0/user/:id", getUser)

@@ -1,6 +1,6 @@
 import "reflect-metadata"
 import { DataSource } from "typeorm"
-import { User } from "./users/entity/User"
+import { User } from "./user/entity/User"
 import { Expense } from "./expense/entity/Expense"
 require("dotenv").config();
 
