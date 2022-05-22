@@ -35,6 +35,8 @@ async function registerUser(req: Request, res: Response) {
         return res.send("Incomplete data");
     }
 
+    // TODO Add check for existing users with same email
+
     const encryptedPassword = bcrypt.hashSync(data.password,  salt);
 
 
