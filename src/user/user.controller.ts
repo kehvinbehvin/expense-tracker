@@ -1,29 +1,23 @@
 import {Request, Response} from "express";
-
-import { AppDataSource } from "../data-source";
-import { User } from "./entity/User"
-import { Profile } from "../user_profile/entity/User_profile"
 import { completeKeys } from "../utils/utils"
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 require("dotenv").config();
 
-const userRepository = AppDataSource.getRepository(User);
-const profileRepository = AppDataSource.getRepository(Profile);
+import { getUserById, createUser, updateUser, removeUser, getUserByEmail } from "./user.manager"
 
-const salt = bcrypt.genSaltSync(Number(process.env.SALT));
-
-async function getUser(req: Request, res: Response) {
+export async function getUser(req: Request, res: Response) {
     const userId = Number(req.params.id);
-    const user = await userRepository.findOneBy({
-        id: userId,
-    })
+    const user = await getUserById(userId);
+
+    if (!user) {
+        return res.json("User does not exist")
+    }
 
     return res.json(user);
 }
 
-async function registerUser(req: Request, res: Response) {
-    const user = new User()
+export async function registerUser(req: Request, res: Response) {
     const data = req.body;
 
     if (Object.keys(data).length === 0) {
@@ -37,61 +31,28 @@ async function registerUser(req: Request, res: Response) {
 
     // TODO Add check for existing users with same email
 
-    const encryptedPassword = bcrypt.hashSync(data.password,  salt);
+    const userId = await createUser(data);
 
-
-    user.firstName = data.firstName
-    user.lastName = data.lastName
-    user.email = data.email
-    user.password = encryptedPassword
-
-    try {
-        await userRepository.save(user)
-    } catch(error) {
-        console.log(error)
-        return res.send("Error when saving user")
+    if (!userId) {
+        return res.send("Error when creating user")
     }
 
-    const profile = new Profile();
-    profile.user = user
-
-    try {
-        await profileRepository.save(profile)
-    } catch(error) {
-        return res.send("Error when saving profile")
-    }
-
-    user.profile = profile;
-
-    try {
-        await userRepository.save(user)
-    } catch(error) {
-        console.log(error)
-        return res.send("Error when saving user")
-    }
-
-    return res.send("Success");
+    return res.send("userId: " + userId);
 }
 
-async function deleteUser(req: Request, res: Response) {
+export async function deleteUser(req: Request, res: Response) {
     const userId = Number(req.params.id);
-    const user = await userRepository.findOneBy({
-        id: userId,
-    })
+    const user = await getUserById(userId);
+    const isRemoved = await removeUser(user);
 
-    try {
-        if (user === null) {
-            return res.send("User does not exist")
-        }
-        await userRepository.remove(user);
-    } catch(error) {
-        return res.send("Error when deleting user")
+    if (!isRemoved) {
+        return res.send("Could not delete user")
     }
 
     return res.send("Deleted User");
 }
 
-async function patchUser(req: Request, res: Response) {
+export async function patchUser(req: Request, res: Response) {
     const data = req.body;
 
     const keyFields = ["id", "firstName", "lastName","email","password"];
@@ -101,32 +62,17 @@ async function patchUser(req: Request, res: Response) {
     }
 
     const userId = Number(data.id);
+    const user = await getUserById(userId);
+    const isUpdated = await updateUser(user, data);
 
-    const user = await userRepository.findOneBy({
-        id: userId,
-    })
-
-    try {
-        if (user === null) {
-            return res.send("User does not exist")
-        }
-
-        const encryptedPassword = bcrypt.hashSync(data.password,  salt);
-
-        user.firstName = data.firstName
-        user.lastName = data.lastName
-        user.email = data.email
-        user.password = encryptedPassword
-
-        await userRepository.save(user);
-    } catch(error) {
-        return res.send("Error when patching user")
+    if (!isUpdated) {
+        return res.json("Patch unsuccessful")
     }
 
     return res.json("Patched successfully");
 }
 
-async function login(req: Request, res: Response) {
+export async function login(req: Request, res: Response) {
     const data = req.body;
 
     const keyFields = ["email","password"];
@@ -135,9 +81,7 @@ async function login(req: Request, res: Response) {
         return res.send("Incomplete data");
     }
 
-    const user = await userRepository.findOneBy({
-        email: data.email,
-    })
+    const user = await getUserByEmail(data.email);
 
     if (user === null) {
         return res.send("User does not exist")
@@ -148,7 +92,7 @@ async function login(req: Request, res: Response) {
             { user_id: user.id },
             process.env.TOKEN_KEY,
             {
-                expiresIn: "2h",
+                expiresIn: process.env.TOKEN_EXPIRY,
             }
         );
 
@@ -163,4 +107,3 @@ async function login(req: Request, res: Response) {
 
 }
 
-export {getUser, registerUser, deleteUser, patchUser, login}
