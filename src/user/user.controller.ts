@@ -1,12 +1,16 @@
 import {Request, Response} from "express";
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
+
 import { AppDataSource } from "../data-source";
 import { User } from "./entity/User"
+import { Profile } from "../user_profile/entity/User_profile"
 import { completeKeys } from "../utils/utils"
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 require("dotenv").config();
 
 const userRepository = AppDataSource.getRepository(User);
+const profileRepository = AppDataSource.getRepository(Profile);
+
 const salt = bcrypt.genSaltSync(Number(process.env.SALT));
 
 async function getUser(req: Request, res: Response) {
@@ -42,6 +46,25 @@ async function registerUser(req: Request, res: Response) {
     try {
         await userRepository.save(user)
     } catch(error) {
+        console.log(error)
+        return res.send("Error when saving user")
+    }
+
+    const profile = new Profile();
+    profile.user = user
+
+    try {
+        await profileRepository.save(profile)
+    } catch(error) {
+        return res.send("Error when saving profile")
+    }
+
+    user.profile = profile;
+
+    try {
+        await userRepository.save(user)
+    } catch(error) {
+        console.log(error)
         return res.send("Error when saving user")
     }
 

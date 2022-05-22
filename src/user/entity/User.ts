@@ -1,5 +1,5 @@
-import { Entity, PrimaryGeneratedColumn, Column, BaseEntity, OneToMany } from "typeorm"
-import { Expense } from "../../expense/entity/Expense"
+import { Entity, PrimaryGeneratedColumn, Column, BaseEntity, OneToMany, OneToOne, JoinColumn } from "typeorm"
+import { Profile } from "../../user_profile/entity/User_profile"
 
 @Entity()
 export class User extends BaseEntity {
@@ -19,7 +19,7 @@ export class User extends BaseEntity {
     @Column("varchar", { length: 200 })
     password: string
 
-    @OneToMany(() => Expense, (expense) => expense.user) // note: we will create author property in the Photo class below
-    expense: Expense[]
-
+    @OneToOne(() => Profile)
+    @JoinColumn()
+    profile: Profile
 }

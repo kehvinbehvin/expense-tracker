@@ -2,11 +2,13 @@ import {Request, Response} from "express";
 import { AppDataSource } from "../data-source";
 import { Expense } from "./entity/Expense";
 import { User } from "../user/entity/User";
+import { Profile } from "../user_profile/entity/User_profile"
 import { completeKeys } from "../utils/utils"
 
 
 const expenseRepository = AppDataSource.getRepository(Expense);
 const userRepository = AppDataSource.getRepository(User);
+const profileRepository = AppDataSource.getRepository(Profile);
 
 
 async function getExpense(req: Request, res: Response) {
@@ -22,30 +24,39 @@ async function addExpense(req: Request, res: Response) {
     const data = req.body;
 
     const keyFields = ["amount", "expense_date", "description", "category"];
+
     if (!completeKeys(keyFields,data)) {
         return res.send("Incomplete data");
     }
 
     const userId = Number(res.locals.currentUserId);
-    const user = await userRepository.findOneBy({
-        id: userId,
+    const user = await userRepository.findOne({
+        where: {
+            id: userId
+        },
+        relations: {
+            profile: true,
+        },
     })
 
-    try {
-        if (user === null) {
-            return res.send("User does not exist")
-        }
-        const expense = new Expense()
+    if (user === null) {
+        return res.send("User does not exist")
+    }
+    const profile = user.profile
 
-        expense.user = user;
+    const expense = new Expense()
+
+    try {
+        expense.profile = profile;
         expense.amount = data.amount;
         expense.expense_date = data.expense_date;
         expense.description = data.description;
         expense.category = data.category;
 
-        user.expense = [expense];
+        profile.expense = [expense];
+
         await expenseRepository.save(expense);
-        await userRepository.save(user);
+        await profileRepository.save(profile);
 
     } catch(error) {
         console.log(error);
@@ -59,18 +70,25 @@ async function patchExpense(req: Request, res: Response) {
     const data = req.body;
 
     const keyFields = ["amount", "expense_date", "description", "category", "id"];
+
     if (!completeKeys(keyFields,data)) {
         return res.send("Incomplete data");
     }
 
     const userId = Number(res.locals.currentUserId);
-    const user = await userRepository.findOneBy({
-        id: userId,
+    const user = await userRepository.findOne({
+        where: {
+            id: userId
+        },
+        relations: {
+            profile: true,
+        },
     })
 
     if (user === null) {
         return res.send("User does not exist")
     }
+    const profile = user.profile
 
     const expenseId = data.id;
     const expense = await expenseRepository.findOne({
@@ -78,7 +96,7 @@ async function patchExpense(req: Request, res: Response) {
             id: expenseId,
         },
         relations: {
-            user: true,
+            profile: true,
         },
     })
 
@@ -87,7 +105,7 @@ async function patchExpense(req: Request, res: Response) {
     }
 
     try {
-        if (expense.user.id !== user.id) {
+        if (expense.profile.id !== profile.id) {
             return res.send("You can only patch your own expense")
         }
 
@@ -108,13 +126,20 @@ async function patchExpense(req: Request, res: Response) {
 async function deleteExpense(req: Request, res: Response) {
     const userId = Number(res.locals.currentUserId);
 
-    const user = await userRepository.findOneBy({
-        id: userId,
+    const user = await userRepository.findOne({
+        where: {
+            id: userId
+        },
+        relations: {
+            profile: true,
+        },
     })
 
     if (user === null) {
         return res.send("User does not exist")
     }
+
+    const profile = user.profile
 
     const expenseId = Number(req.params.id);
     const expense = await expenseRepository.findOne({
@@ -122,7 +147,7 @@ async function deleteExpense(req: Request, res: Response) {
             id: expenseId,
         },
         relations: {
-            user: true,
+            profile: true,
         },
     })
 
@@ -131,7 +156,7 @@ async function deleteExpense(req: Request, res: Response) {
     }
 
     try {
-        if (expense.user.id !== user.id) {
+        if (expense.profile.id !== profile.id) {
             return res.send("You can only patch your own expense")
         }
         await expenseRepository.remove(expense);

@@ -1,5 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, BaseEntity,ManyToOne } from "typeorm"
-import { User } from "../../user/entity/User"
+import { Profile } from "../../user_profile/entity/User_profile"
 
 
 @Entity()
@@ -20,7 +20,7 @@ export class Expense extends BaseEntity {
     @Column("varchar", { length: 200 })
     category: string
 
-    @ManyToOne(() => User, (user) => user.expense)
-    user: User
+    @ManyToOne(() => Profile, (profile) => profile.expense)
+    profile: Profile
 
 }
