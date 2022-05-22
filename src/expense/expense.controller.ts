@@ -1,8 +1,8 @@
 import {Request, Response} from "express";
 import { AppDataSource } from "../data-source";
 import { Expense } from "./entity/Expense";
-import { User } from "../users/entity/User";
-import { completeKeys } from "./utils/utils"
+import { User } from "../user/entity/User";
+import { completeKeys } from "../utils/utils"
 
 
 const expenseRepository = AppDataSource.getRepository(Expense);

@@ -3,7 +3,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 import { AppDataSource } from "../data-source";
 import { User } from "./entity/User"
-import { completeKeys } from "./utils/utils"
+import { completeKeys } from "../utils/utils"
 require("dotenv").config();
 
 const userRepository = AppDataSource.getRepository(User);
