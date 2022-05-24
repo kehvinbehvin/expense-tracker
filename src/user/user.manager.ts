@@ -6,27 +6,24 @@ const bcrypt = require('bcryptjs');
 const userRepository = AppDataSource.getRepository(User);
 const profileRepository = AppDataSource.getRepository(Profile);
 
-interface UserInterface {
-    firstName: string;
-    lastName: string;
-    email: string;
-    password: string;
-    id: number;
-}
-
-export async function getUserById(id: number): Promise<null | UserInterface> {
-    return await userRepository.findOneBy({
-        id: id,
+export async function getUserById(id: number): Promise<null | User> {
+    return await userRepository.findOne({
+        where: {
+            id: id
+        },
+        relations: {
+            profile: true,
+        },
     })
 }
 
-export async function getUserByEmail(email: string): Promise<null | UserInterface> {
+export async function getUserByEmail(email: string): Promise<null | User> {
     return await userRepository.findOneBy({
         email: email,
     });
 }
 
-export async function createUser(data: UserInterface): Promise<number | boolean> {
+export async function createUser(data: User): Promise<number | boolean> {
 
     const user = new User()
     await setUserData(user,data);
@@ -53,7 +50,7 @@ export async function createUser(data: UserInterface): Promise<number | boolean>
     return user.id;
 }
 
-export async function updateUser(user: UserInterface | null, data: UserInterface): Promise<boolean> {
+export async function updateUser(user: User | null, data: User): Promise<boolean> {
     if (user === null) {
         return false;
     }
@@ -61,7 +58,7 @@ export async function updateUser(user: UserInterface | null, data: UserInterface
     return setUserData(user, data);
 }
 
-export async function removeUser(user: UserInterface | null): Promise<boolean> {
+export async function removeUser(user: User | null): Promise<boolean> {
     try {
         if (user === null) {
             return false;
@@ -78,7 +75,7 @@ export async function removeUser(user: UserInterface | null): Promise<boolean> {
     }
 }
 
-async function setUserData(user: UserInterface, data: UserInterface): Promise<boolean> {
+async function setUserData(user: User, data: User): Promise<boolean> {
     user.firstName = data.firstName
     user.lastName = data.lastName
     user.email = data.email
