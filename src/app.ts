@@ -1,7 +1,8 @@
-import express, {Request, Response, NextFunction}  from "express";
+import express  from "express";
 import { AppDataSource } from "./data-source";
 import userRoutes from "./user/user.routes"
 import expenseRoutes from "./expense/expense.routes";
+import transactionsRoutes from "./analytics/analytics.routes";
 
 const app = express();
 
@@ -9,6 +10,7 @@ app.use(express.json());
 
 userRoutes(app);
 expenseRoutes(app);
+transactionsRoutes(app);
 
 AppDataSource.initialize().then(async () => {
     console.log("Database connected")
