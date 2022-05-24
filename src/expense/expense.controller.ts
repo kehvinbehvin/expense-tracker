@@ -3,6 +3,7 @@ import { completeKeys } from "../utils/utils"
 
 import { createNewExpense, deleteExistingExpense, getExpenseById, patchExistingExpense } from "./expense.manager"
 import { getUserById } from "../user/user.manager";
+import { getProfileById } from "../user_profile/user_profile.manager";
 
 export async function getExpense(req: Request, res: Response) {
     const expenseId = Number(req.params.id);
@@ -26,7 +27,11 @@ export async function addExpense(req: Request, res: Response) {
     if (user === null) {
         return res.send("User does not exist")
     }
-    const profile = user.profile
+    const profile = await getProfileById(user.profile.id);
+
+    if (profile === null) {
+        return res.send("Profile does not exist")
+    }
 
     const expense = createNewExpense(profile,data);
 

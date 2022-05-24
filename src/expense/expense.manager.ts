@@ -26,8 +26,7 @@ export async function createNewExpense(profile: Profile, data: Expense): Promise
         expense.expense_date = data.expense_date;
         expense.description = data.description;
         expense.category = data.category;
-
-        profile.expense = [expense];
+        profile.expense.push(expense);
 
         await expenseRepository.save(expense);
         await profileRepository.save(profile);
