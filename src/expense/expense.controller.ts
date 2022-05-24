@@ -1,17 +1,17 @@
 import {Request, Response} from "express";
 import { completeKeys } from "../utils/utils"
 
-import {createNewExpense, deleteExistingExpense, getExpenseById, patchExistingExpense} from "./expense.manager"
+import { createNewExpense, deleteExistingExpense, getExpenseById, patchExistingExpense } from "./expense.manager"
 import { getUserById } from "../user/user.manager";
 
-async function getExpense(req: Request, res: Response) {
+export async function getExpense(req: Request, res: Response) {
     const expenseId = Number(req.params.id);
     const expense = await getExpenseById(expenseId);
 
     return res.json(expense);
 }
 
-async function addExpense(req: Request, res: Response) {
+export async function addExpense(req: Request, res: Response) {
     const data = req.body;
 
     const keyFields = ["amount", "expense_date", "description", "category"];
@@ -37,7 +37,7 @@ async function addExpense(req: Request, res: Response) {
     return res.send("Expense added")
 }
 
-async function patchExpense(req: Request, res: Response) {
+export async function patchExpense(req: Request, res: Response) {
     const data = req.body;
 
     const keyFields = ["amount", "expense_date", "description", "category", "id"];
@@ -64,7 +64,7 @@ async function patchExpense(req: Request, res: Response) {
     return res.send("Patched Expense")
 }
 
-async function deleteExpense(req: Request, res: Response) {
+export async function deleteExpense(req: Request, res: Response) {
     const userId = Number(res.locals.currentUserId);
 
     const user = await getUserById(userId);
@@ -86,5 +86,3 @@ async function deleteExpense(req: Request, res: Response) {
 
     return res.send("Delete Expense")
 }
-
-export {getExpense, addExpense, deleteExpense, patchExpense}
