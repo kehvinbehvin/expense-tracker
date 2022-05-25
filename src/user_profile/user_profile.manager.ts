@@ -10,6 +10,8 @@ export async function getProfileById(id: number): Promise<Profile | null> {
         },
         relations: {
             expense: true,
+            payable: true,
+            receivable: true,
         }
     })
 
