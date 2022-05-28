@@ -40,7 +40,7 @@ export async function createNewPayable(profile: Profile, data: Payable): Promise
     return payable;
 }
 
-export async function patchExistingEPayable(payable: Payable | null, profile: Profile, data: Payable): Promise<boolean> {
+export async function patchExistingPayable(payable: Payable | null, profile: Profile, data: Payable): Promise<boolean> {
     if (payable === null) {
         console.log("Expense does not exist")
         return false;

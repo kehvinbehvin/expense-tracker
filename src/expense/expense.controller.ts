@@ -2,8 +2,6 @@ import {Request, Response} from "express";
 import { completeKeys } from "../utils/utils"
 
 import { createNewExpense, deleteExistingExpense, getExpenseById, patchExistingExpense } from "./expense.manager"
-import { getUserById } from "../user/user.manager";
-import { getProfileById } from "../user_profile/user_profile.manager";
 
 export async function getExpense(req: Request, res: Response) {
     const expenseId = Number(req.params.id);
@@ -21,17 +19,10 @@ export async function addExpense(req: Request, res: Response) {
         return res.send("Incomplete data");
     }
 
-    const userId = Number(res.locals.currentUserId);
-    const user = await getUserById(userId);
-
-    if (user === null) {
-        return res.send("User does not exist")
+    if (!res.locals.currentProfile) {
+        return res.send("You need to be authenticated")
     }
-    const profile = await getProfileById(user.profile.id);
-
-    if (profile === null) {
-        return res.send("Profile does not exist")
-    }
+    const profile = res.locals.currentProfile;
 
     const expense = createNewExpense(profile,data);
 
@@ -51,14 +42,11 @@ export async function patchExpense(req: Request, res: Response) {
         return res.send("Incomplete data");
     }
 
-    const userId = Number(res.locals.currentUserId);
-    const user = await getUserById(userId);
-
-    if (user === null) {
-        return res.send("User does not exist")
+    if (!res.locals.currentProfile) {
+        return res.send("You need to be authenticated")
     }
+    const profile = res.locals.currentProfile;
 
-    const profile = user.profile
     const expenseId = data.id;
     const expense = await getExpenseById(expenseId);
     const updatedExpense = await patchExistingExpense(expense, profile, data);
@@ -70,15 +58,10 @@ export async function patchExpense(req: Request, res: Response) {
 }
 
 export async function deleteExpense(req: Request, res: Response) {
-    const userId = Number(res.locals.currentUserId);
-
-    const user = await getUserById(userId);
-
-    if (user === null) {
-        return res.send("User does not exist")
+    if (!res.locals.currentProfile) {
+        return res.send("You need to be authenticated")
     }
-
-    const profile = user.profile
+    const profile = res.locals.currentProfile;
 
     const expenseId = Number(req.params.id);
     const expense = await getExpenseById(expenseId);

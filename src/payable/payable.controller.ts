@@ -1,8 +1,8 @@
-import {Request, Response} from "express";
+import { Request, Response } from "express";
 import { completeKeys } from "../utils/utils"
 import { getUserById } from "../user/user.manager";
 import { getProfileById } from "../user_profile/user_profile.manager";
-import { createNewPayable, getPayableById, patchExistingEPayable, deleteExistingPayable } from "../payable/payable.manager";
+import { createNewPayable, getPayableById, patchExistingPayable, deleteExistingPayable } from "../payable/payable.manager";
 
 export async function getPayable(req: Request, res: Response) {
     const payableId = Number(req.params.id);
@@ -20,17 +20,10 @@ export async function addPayable(req: Request, res: Response) {
         return res.send("Incomplete data");
     }
 
-    const userId = Number(res.locals.currentUserId);
-    const user = await getUserById(userId);
-
-    if (user === null) {
-        return res.send("User does not exist")
+    if (!res.locals.currentProfile) {
+        return res.send("You need to be authenticated")
     }
-    const profile = await getProfileById(user.profile.id);
-
-    if (profile === null) {
-        return res.send("Profile does not exist")
-    }
+    const profile = res.locals.currentProfile;
 
     const payable = createNewPayable(profile,data);
 
@@ -42,18 +35,10 @@ export async function addPayable(req: Request, res: Response) {
 }
 
 export async function deletePayable(req: Request, res: Response) {
-    const userId = Number(res.locals.currentUserId);
-    const user = await getUserById(userId);
-
-    if (user === null) {
-        return res.send("User does not exist")
+    if (!res.locals.currentProfile) {
+        return res.send("You need to be authenticated")
     }
-
-    const profile = await getProfileById(user.profile.id);
-
-    if (profile === null) {
-        return res.send("Profile does not exist")
-    }
+    const profile = res.locals.currentProfile;
 
     const payableId = Number(req.params.id);
     const payable = await getPayableById(payableId);
@@ -76,23 +61,16 @@ export async function updatePayable(req: Request, res: Response) {
         return res.send("Incomplete data");
     }
 
-    const userId = Number(res.locals.currentUserId);
-    const user = await getUserById(userId);
-
-    if (user === null) {
-        return res.send("User does not exist")
+    if (!res.locals.currentProfile) {
+        return res.send("You need to be authenticated")
     }
-    const profile = await getProfileById(user.profile.id);
-
-    if (profile === null) {
-        return res.send("Profile does not exist")
-    }
+    const profile = res.locals.currentProfile;
 
     const payableId = data.id;
     const payable = await getPayableById(payableId);
-    const updatedPayable = await patchExistingEPayable(payable, profile, data);
+    const updatedPayable = await patchExistingPayable(payable, profile, data);
 
-    if (updatedPayable) {
+    if (!updatedPayable) {
         return res.send("Failed to patch payable")
     }
 

@@ -1,5 +1,4 @@
 import {Request, Response} from "express";
-import {getUserById} from "../user/user.manager";
 import {completeKeys} from "../utils/utils";
 
 import { getTransactionsByDuration } from "./analytics.manager";
@@ -13,13 +12,10 @@ export async function getTransactionsByMonth(req: Request, res: Response) {
         return res.send("Incomplete data");
     }
 
-    const userId = Number(res.locals.currentUserId);
-    const user = await getUserById(userId);
-
-    if (user === null) {
-        return res.send("User does not exist")
+    if (!res.locals.currentProfile) {
+        return res.send("You need to be authenticated")
     }
-    const profile = user.profile
+    const profile = res.locals.currentProfile;
 
     const expenses = await getTransactionsByDuration(profile, data["expense_start_date"], data["expense_end_date"]);
 
