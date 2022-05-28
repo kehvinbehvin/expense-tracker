@@ -13,10 +13,10 @@ export class Receivable extends BaseEntity {
     @Column({ type: "datetime" })
     transaction_date: string // 'YYYY-MM-DD hh:mm:ss'
 
-    @Column({ type: "datetime" })
+    @Column({ type: "datetime", default: null })
     repayment_date: string // 'YYYY-MM-DD hh:mm:ss'
 
-    @Column({ type: "datetime" })
+    @Column({ type: "datetime", default: null })
     expected_repayment_date: string // 'YYYY-MM-DD hh:mm:ss'
 
     @Column("varchar", { length: 200 })
