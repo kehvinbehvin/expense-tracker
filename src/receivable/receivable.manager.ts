@@ -1,6 +1,7 @@
 import { AppDataSource } from "../data-source";
 import { Profile } from "../user_profile/entity/User_profile";
 import { Receivable} from "./entity/Receivable";
+import receivableLogChannel from "./receivable.logger";
 
 const profileRepository = AppDataSource.getRepository(Profile)
 const receivableRepository = AppDataSource.getRepository(Receivable)
@@ -16,7 +17,7 @@ export async function getReceivableById(id: number): Promise<Receivable | null> 
     })
 }
 
-export async function createNewReceivable(profile: Profile, data: Receivable): Promise<boolean | Receivable> {
+export async function createNewReceivable(profile: Profile, data: Receivable): Promise<null | Receivable> {
     const receivable = new Receivable();
 
     try {
@@ -34,21 +35,22 @@ export async function createNewReceivable(profile: Profile, data: Receivable): P
         await profileRepository.save(profile);
 
     } catch(error) {
-        console.log(error);
-        return false;
+        receivableLogChannel.log("error",`${error}`);
+        return null;
     }
     return receivable;
 }
 
-export async function patchExistingReceivable(receivable: Receivable | null, profile: Profile, data: Receivable): Promise<boolean> {
+export async function patchExistingReceivable(receivable: Receivable | null, profile: Profile, data: Receivable): Promise<null | Receivable> {
     if (receivable === null) {
-        console.log("Receivable does not exist")
-        return false;
+        receivableLogChannel.log("info","Receivable does not exist");
+        return null;
+
     }
 
     if (receivable.profile.id !== profile.id) {
-        console.log("You can only patch your own expense")
-        return false;
+        receivableLogChannel.log("info","You can only patch your own expense");
+        return null;
     }
 
     try {
@@ -62,29 +64,29 @@ export async function patchExistingReceivable(receivable: Receivable | null, pro
 
         await receivableRepository.save(receivable);
     } catch (error) {
-        console.log("Error when patching receivable: " + error);
-        return false
+        receivableLogChannel.log("error",`${error}`);
+        return null
     }
-    return true;
+    return receivable;
 }
 
-export async function deleteExistingReceivable(receivable: Receivable | null, profile: Profile): Promise<boolean> {
+export async function deleteExistingReceivable(receivable: Receivable | null, profile: Profile): Promise<null | Receivable> {
     if (receivable === null) {
-        console.log("receivable does not exist")
-        return false;
+        receivableLogChannel.log("infor",`receivable does not exist`);
+        return null;
     }
 
     try {
         if (receivable.profile.id !== profile.id) {
-            console.log("You can only patch your own receivable");
-            return false;
+            receivableLogChannel.log("infor",`You can only patch your own receivable`);
+            return null;
         }
         await receivableRepository.remove(receivable);
 
     } catch(error) {
-        console.log("Error when deleting receivable" + error);
-        return false;
+        receivableLogChannel.log("error",`${error}`);
+        return null;
     }
 
-    return true;
+    return receivable;
 }

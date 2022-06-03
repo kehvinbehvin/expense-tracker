@@ -1,11 +1,12 @@
 import {Request, Response} from "express";
 import { completeKeys } from "../utils/utils"
 import { createNewReceivable, getReceivableById, patchExistingReceivable, deleteExistingReceivable } from "../receivable/receivable.manager";
+import receivableLogChannel from "./receivable.logger";
 
 export async function getReceivable(req: Request, res: Response) {
     const receivableId = Number(req.params.id);
     const receivable = await getReceivableById(receivableId);
-
+    receivableLogChannel.log("info",`Retrieved receivable id: ${receivableId}`)
     return res.json(receivable);
 }
 
@@ -23,12 +24,13 @@ export async function addReceivable(req: Request, res: Response) {
     }
     const profile = res.locals.currentProfile;
 
-    const receivable = createNewReceivable(profile,data);
+    const receivable = await createNewReceivable(profile,data);
 
     if (!receivable) {
         return res.send("Error adding expense")
     }
 
+    receivableLogChannel.log(`Added receivable id: ${receivable.id}`)
     return res.send("Receivable added");
 }
 
@@ -54,6 +56,8 @@ export async function updateReceivable(req: Request, res: Response) {
         return res.send("Failed to patch payable")
     }
 
+    receivableLogChannel.log(`Updated receivable id: ${updatedReceivable.id}`)
+
     return res.send("Patched payable");
 }
 
@@ -71,6 +75,8 @@ export async function deleteReceivable(req: Request, res: Response) {
     if (!isReceivableDeleted) {
         return res.send("Error when deleting receivable")
     }
+
+    receivableLogChannel.log(`Deleted receivable id: ${isReceivableDeleted.id}`)
 
     return res.send("Deleted receivable");
 }
