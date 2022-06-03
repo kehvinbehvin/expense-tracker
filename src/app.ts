@@ -5,10 +5,12 @@ import expenseRoutes from "./expense/expense.routes";
 import transactionsRoutes from "./analytics/analytics.routes";
 import payableRoutes from "./payable/payable.routes";
 import receivableRoutes from "./receivable/receivable.routes";
+import routeLogger from "./logger/src/routeLogger.middleware";
 
 const app = express();
 
 app.use(express.json());
+app.use(routeLogger);
 
 userRoutes(app);
 expenseRoutes(app);
