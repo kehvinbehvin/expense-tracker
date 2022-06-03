@@ -1,6 +1,7 @@
 import { AppDataSource } from "../data-source";
 import { Expense } from "./entity/Expense";
 import { Profile } from "../user_profile/entity/User_profile"
+import expenseLogChannel from "./expense.logger";
 
 const expenseRepository = AppDataSource.getRepository(Expense);
 const profileRepository = AppDataSource.getRepository(Profile);
@@ -17,7 +18,7 @@ export async function getExpenseById(id: number): Promise<null | Expense> {
     })
 }
 
-export async function createNewExpense(profile: Profile, data: Expense): Promise<boolean | Expense> {
+export async function createNewExpense(profile: Profile, data: Expense): Promise<null | Expense> {
     const expense = new Expense()
 
     try {
@@ -32,21 +33,21 @@ export async function createNewExpense(profile: Profile, data: Expense): Promise
         await profileRepository.save(profile);
 
     } catch(error) {
-        console.log(error);
-        return false;
+        expenseLogChannel.log("error",`${error}`);
+        return null;
     }
     return expense;
 }
 
-export async function patchExistingExpense(expense: Expense | null, profile: Profile, data: Expense): Promise<boolean> {
+export async function patchExistingExpense(expense: Expense | null, profile: Profile, data: Expense): Promise<null | Expense> {
     if (expense === null) {
-        console.log("Expense does not exist")
-        return false;
+        expenseLogChannel.log("info",`Expense does not exist`);
+        return null;
     }
 
     if (expense.profile.id !== profile.id) {
-        console.log("You can only patch your own expense")
-        return false;
+        expenseLogChannel.log("info",`You can only patch your own expense`);
+        return null;
     }
 
     try {
@@ -57,29 +58,29 @@ export async function patchExistingExpense(expense: Expense | null, profile: Pro
 
         await expenseRepository.save(expense);
     } catch (error) {
-        console.log("Error when patching expense: " + error);
-        return false
+        expenseLogChannel.log("error",`${error}`);
+        return null
     }
-    return true;
+    return expense;
 }
 
-export async function deleteExistingExpense(expense: Expense | null, profile: Profile): Promise<boolean> {
+export async function deleteExistingExpense(expense: Expense | null, profile: Profile): Promise<null | Expense> {
     if (expense === null) {
-        console.log("Expense does not exist")
-        return false;
+        expenseLogChannel.log("info",`Expense does not exist`);
+        return null;
     }
 
     try {
         if (expense.profile.id !== profile.id) {
-            console.log("You can only patch your own expense");
-            return false;
+            expenseLogChannel.log("info",`You can only patch your own expense`);
+            return null;
         }
         await expenseRepository.remove(expense);
 
     } catch(error) {
-        console.log("Error when deleting expense" + error);
-        return false;
+        expenseLogChannel.log("error",`${error}`);
+        return null;
     }
 
-    return true;
+    return expense;
 }
