@@ -1,6 +1,6 @@
 import {Request, Response} from "express";
 import { completeKeys } from "../utils/utils"
-import { createNewReceivable, getReceivableById, patchExistingReceivable, deleteExistingReceivable } from "../receivable/receivable.manager";
+import { createNewReceivable, getReceivableById, patchExistingReceivable, deleteExistingReceivable } from "./receivable.manager";
 import receivableLogChannel from "./receivable.logger";
 
 export async function getReceivable(req: Request, res: Response) {

@@ -1,6 +1,6 @@
 import { AppDataSource } from "../data-source";
 import { Profile } from "../user_profile/entity/User_profile";
-import { Payable } from "../payable/entity/Payable";
+import { Payable } from "./entity/Payable";
 import payableLogChannel from "./payable.logger";
 
 const profileRepository = AppDataSource.getRepository(Profile);
