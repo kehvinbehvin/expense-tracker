@@ -1,6 +1,7 @@
 import { AppDataSource } from "../data-source";
 import { Profile } from "../user_profile/entity/User_profile";
 import { Payable } from "../payable/entity/Payable";
+import payableLogChannel from "./payable.logger";
 
 const profileRepository = AppDataSource.getRepository(Profile);
 const payableRepository = AppDataSource.getRepository(Payable);
@@ -16,7 +17,7 @@ export async function getPayableById(id: number): Promise<null | Payable> {
     })
 }
 
-export async function createNewPayable(profile: Profile, data: Payable): Promise<boolean | Payable> {
+export async function createNewPayable(profile: Profile, data: Payable): Promise<null | Payable> {
     const payable = new Payable();
 
     try {
@@ -34,21 +35,21 @@ export async function createNewPayable(profile: Profile, data: Payable): Promise
         await profileRepository.save(profile);
 
     } catch(error) {
-        console.log(error);
-        return false;
+        payableLogChannel.log("error",`${error}`);
+        return null;
     }
     return payable;
 }
 
-export async function patchExistingPayable(payable: Payable | null, profile: Profile, data: Payable): Promise<boolean> {
+export async function patchExistingPayable(payable: Payable | null, profile: Profile, data: Payable): Promise<null | Payable> {
     if (payable === null) {
-        console.log("Expense does not exist")
-        return false;
+        payableLogChannel.log("info",`Expense does not exist`);
+        return null;
     }
 
     if (payable.profile.id !== profile.id) {
-        console.log("You can only patch your own expense")
-        return false;
+        payableLogChannel.log("info",`You can only patch your own expense`);
+        return null;
     }
 
     try {
@@ -62,29 +63,29 @@ export async function patchExistingPayable(payable: Payable | null, profile: Pro
 
         await payableRepository.save(payable);
     } catch (error) {
-        console.log("Error when patching payable: " + error);
-        return false
+        payableLogChannel.log("error",`${error}`);
+        return null
     }
-    return true;
+    return payable;
 }
 
-export async function deleteExistingPayable(payable: Payable | null, profile: Profile): Promise<boolean> {
+export async function deleteExistingPayable(payable: Payable | null, profile: Profile): Promise<null | Payable> {
     if (payable === null) {
-        console.log("payable does not exist")
-        return false;
+        payableLogChannel.log("info",`payable does not exist`);
+        return null;
     }
 
     try {
         if (payable.profile.id !== profile.id) {
-            console.log("You can only patch your own payable");
-            return false;
+            payableLogChannel.log("info",`You can only patch your own payable`);
+            return null;
         }
         await payableRepository.remove(payable);
 
     } catch(error) {
-        console.log("Error when deleting payable" + error);
-        return false;
+        payableLogChannel.log("error",`${error}`);
+        return null;
     }
 
-    return true;
+    return payable;
 }
