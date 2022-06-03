@@ -3,8 +3,10 @@ import { completeKeys } from "../utils/utils"
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 require("dotenv").config();
+import userLogger from "./user.logger";
 
 import { getUserById, createUser, updateUser, removeUser, getUserByEmail } from "./user.manager"
+
 
 export async function getUser(req: Request, res: Response) {
     const userId = Number(req.params.id);
@@ -30,14 +32,14 @@ export async function registerUser(req: Request, res: Response) {
     }
 
     // TODO Add check for existing users with same email
-
-    const userId = await createUser(data);
-
-    if (!userId) {
-        return res.send("Error when creating user")
+    try {
+        const user = await createUser(data);
+        userLogger.log("info",`${user.email} created`);
+        return res.send("Added");
+    } catch (error) {
+        userLogger.log("error", error);
+        return res.send("User could not be created")
     }
-
-    return res.send("userId: " + userId);
 }
 
 export async function deleteUser(req: Request, res: Response) {
@@ -99,6 +101,7 @@ export async function login(req: Request, res: Response) {
         const output = {
             "access_token": token,
         }
+        userLogger.log("info",`${user.email} logged in`);
 
         return res.status(200).json(output);
     }

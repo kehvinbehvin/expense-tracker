@@ -1,6 +1,7 @@
 import { AppDataSource } from "../data-source";
 import { User } from "./entity/User"
 import { Profile } from "../user_profile/entity/User_profile"
+import userLogger from "./user.logger";
 const bcrypt = require('bcryptjs');
 
 const userRepository = AppDataSource.getRepository(User);
@@ -23,7 +24,7 @@ export async function getUserByEmail(email: string): Promise<null | User> {
     });
 }
 
-export async function createUser(data: User): Promise<number | boolean> {
+export async function createUser(data: User): Promise<User> {
 
     const user = new User()
     await setUserData(user,data);
@@ -34,8 +35,8 @@ export async function createUser(data: User): Promise<number | boolean> {
     try {
         await profileRepository.save(profile)
     } catch(error) {
-        console.log(error)
-        return false;
+        userLogger.log("error",`${error}`);
+        throw new Error(error);
     }
 
     user.profile = profile;
@@ -43,11 +44,11 @@ export async function createUser(data: User): Promise<number | boolean> {
     try {
         await userRepository.save(user)
     } catch(error) {
-        console.log(error)
-        return false;
+        userLogger.log("error",`${error}`);
+        throw new Error(error);
     }
 
-    return user.id;
+    return user;
 }
 
 export async function updateUser(user: User | null, data: User): Promise<boolean> {
@@ -85,7 +86,7 @@ async function setUserData(user: User, data: User): Promise<boolean> {
         await userRepository.save(user);
 
     } catch (error) {
-        console.log(error);
+        userLogger.log("error",`${error}`);
         return false;
 
     }
