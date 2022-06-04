@@ -1,4 +1,4 @@
-import logger from "../logger/src/logger"
+import logger from "../utils/logger/src/logger"
 
 const payableLogChannel = logger.child({
     channel: 'payable' ,
