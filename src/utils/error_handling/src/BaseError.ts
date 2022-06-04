@@ -1,5 +1,6 @@
 export class BaseError extends Error {
 
+    public customError: boolean;
     public statusCode: number;
     public isOperational: boolean;
     public name: string;
@@ -9,6 +10,7 @@ export class BaseError extends Error {
         super(message)
 
         Object.setPrototypeOf(this, new.target.prototype)
+        this.customError = true;
         this.name = name
         this.statusCode = statusCode
         this.isOperational = isOperational
