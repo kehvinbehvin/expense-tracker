@@ -1,13 +1,12 @@
 import logger from "../logger/src/logger"
 import {Request, Response, NextFunction} from "express";
+import {BaseError} from "./src/BaseError";
 
-const errorLogChannel = logger.child({
-    channel: '' ,
-})
-
-function errorHandler (err: Error, req: Request, res: Response, next: NextFunction) {
-    res.status(500)
-    errorLogChannel.log('error', { "Error": err })
+function errorHandler (error: BaseError, req: Request, res: Response, next: NextFunction) {
+    const response = {
+        "Error message": `${error.message}`,
+    }
+    return res.json(response).status(error.statusCode);
 }
 
 export default errorHandler;

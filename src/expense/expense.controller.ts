@@ -1,12 +1,15 @@
-import {Request, Response} from "express";
+import {Request, Response, NextFunction} from "express";
 import { completeKeys } from "../utils/utils"
+import {HTTPInternalSeverError} from "../utils/error_handling/src/HTTPInternalSeverError";
+import {HTTPAccessDeniedError} from "../utils/error_handling/src/HTTPAccessDeniedError";
+import {HTTPBadRequestError} from "../utils/error_handling/src/HTTPBadRequestError";
 import expenseLogChannel from "./expense.logger";
 import httpStatusCodes from "../utils/error_handling/configs/httpStatusCodes";
 
 import { createNewExpense, deleteExistingExpense, getExpenseById, patchExistingExpense } from "./expense.manager"
 
 
-export async function getExpense(req: Request, res: Response) {
+export async function getExpense(req: Request, res: Response, next: NextFunction) {
     try {
         const expenseId = Number(req.params.id);
         const expense = await getExpenseById(expenseId);
@@ -15,42 +18,29 @@ export async function getExpense(req: Request, res: Response) {
 
     } catch(error) {
         expenseLogChannel.log("error", error);
-        const response = {
-            "Message": `${error.message}`,
-        }
-        return res.json(response).status(error.statusCode);
-
+        return next(error);
     }
 }
 
-export async function addExpense(req: Request, res: Response) {
+export async function addExpense(req: Request, res: Response, next: NextFunction) {
     try {
         const data = req.body;
 
         const keyFields = ["amount", "expense_date", "description", "category"];
 
         if (!completeKeys(keyFields,data)) {
-            const response = {
-                "Message": "Incomplete data",
-            }
-            return res.json(response).status(httpStatusCodes.BAD_REQUEST);
+            return next(new HTTPBadRequestError("Incomplete data"));
         }
 
         if (!res.locals.currentProfile) {
-            const response = {
-                "Message": "You need to be authenticated",
-            }
-            return res.json(response).status(httpStatusCodes.ACCESS_DENIED);
+            return next(new HTTPAccessDeniedError("You need to be authenticated"));
         }
         const profile = res.locals.currentProfile;
 
         const expense = await createNewExpense(profile,data);
 
         if (!expense) {
-            const response = {
-                "Message": "Error adding expense",
-            }
-            return res.json(response).status(httpStatusCodes.INTERNAL_SERVER_ERROR);
+            return next(new HTTPInternalSeverError("Error adding expense"));
         }
 
         expenseLogChannel.log("info",`Added expense id: ${expense.id}`);
@@ -64,33 +54,23 @@ export async function addExpense(req: Request, res: Response) {
 
     } catch(error) {
         expenseLogChannel.log("error", error);
-        const response = {
-            "Message": `${error.message}`,
-        }
-        return res.json(response).status(error.statusCode);
-
+        return next(error);
     }
 
 }
 
-export async function patchExpense(req: Request, res: Response) {
+export async function patchExpense(req: Request, res: Response, next: NextFunction) {
     try {
         const data = req.body;
 
         const keyFields = ["amount", "expense_date", "description", "category", "id"];
 
         if (!completeKeys(keyFields,data)) {
-            const response = {
-                "Message": "Incomplete data",
-            }
-            return res.json(response).status(httpStatusCodes.BAD_REQUEST);
+            return next(new HTTPBadRequestError("Incomplete data"));
         }
 
         if (!res.locals.currentProfile) {
-            const response = {
-                "Message": "You need to be authenticated",
-            }
-            return res.json(response).status(httpStatusCodes.ACCESS_DENIED);
+            return next(new HTTPAccessDeniedError("You need to be authenticated"));
         }
 
         const profile = res.locals.currentProfile;
@@ -100,10 +80,7 @@ export async function patchExpense(req: Request, res: Response) {
         const updatedExpense = await patchExistingExpense(expense, profile, data);
 
         if (!updatedExpense) {
-            const response = {
-                "Message": "Failed to patch expense",
-            }
-            return res.json(response).status(httpStatusCodes.INTERNAL_SERVER_ERROR);
+            return next(new HTTPInternalSeverError("Error patching expense"));
         }
 
         expenseLogChannel.log("info",`Updated expense id: ${updatedExpense.id}`);
@@ -117,20 +94,14 @@ export async function patchExpense(req: Request, res: Response) {
 
     } catch (error: any) {
         expenseLogChannel.log("error", error);
-        const response = {
-            "Message": `${error.message}`,
-        }
-        return res.json(response).status(error.statusCode);
+        return next(error);
     }
 }
 
-export async function deleteExpense(req: Request, res: Response) {
+export async function deleteExpense(req: Request, res: Response, next: NextFunction) {
     try {
         if (!res.locals.currentProfile) {
-            const response = {
-                "Message": "You need to be authenticated",
-            }
-            return res.json(response).status(httpStatusCodes.ACCESS_DENIED);
+            return next(new HTTPAccessDeniedError("You need to be authenticated"));
         }
 
         const profile = res.locals.currentProfile;
@@ -141,10 +112,7 @@ export async function deleteExpense(req: Request, res: Response) {
         const deletedExpense = await deleteExistingExpense(expense, profile);
 
         if (!deletedExpense) {
-            const response = {
-                "Message": "Error when deleting expense",
-            }
-            return res.json(response).status(httpStatusCodes.INTERNAL_SERVER_ERROR);
+            return next(new HTTPInternalSeverError("Error deleting expense"));
         }
 
         expenseLogChannel.log("info",`Updated expense id: ${deletedExpense.id}`);
@@ -158,9 +126,6 @@ export async function deleteExpense(req: Request, res: Response) {
 
     } catch(error: any) {
         expenseLogChannel.log("error", error);
-        const response = {
-            "Message": `${error.message}`,
-        }
-        return res.json(response).status(error.statusCode);
+        return next(error);
     }
 }
