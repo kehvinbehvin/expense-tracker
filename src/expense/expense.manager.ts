@@ -1,14 +1,17 @@
 import { AppDataSource } from "../data-source";
 import { Expense } from "./entity/Expense";
 import { Profile } from "../user_profile/entity/User_profile"
+import { HTTPInternalSeverError } from "../utils/error_handling/src/HTTPInternalSeverError";
+import { HTTPNotFoundError } from "../utils/error_handling/src/HTTPNotFoundError";
+import { HTTPBadRequestError } from "../utils/error_handling/src/HTTPBadRequestError";
 import expenseLogChannel from "./expense.logger";
 
 const expenseRepository = AppDataSource.getRepository(Expense);
 const profileRepository = AppDataSource.getRepository(Profile);
 
 
-export async function getExpenseById(id: number): Promise<null | Expense> {
-    return await expenseRepository.findOne({
+export async function getExpenseById(id: number): Promise<Expense> {
+    const expense = await expenseRepository.findOne({
         where: {
             id: id
         },
@@ -16,12 +19,18 @@ export async function getExpenseById(id: number): Promise<null | Expense> {
             profile: true,
         },
     })
+
+    if (!expense) {
+        throw new HTTPNotFoundError(`Expense id ${id} does not exist`);
+    }
+
+    return expense;
 }
 
-export async function createNewExpense(profile: Profile, data: Expense): Promise<null | Expense> {
-    const expense = new Expense()
-
+export async function createNewExpense(profile: Profile, data: Expense): Promise<Expense> {
     try {
+        const expense = new Expense()
+
         expense.profile = profile;
         expense.amount = data.amount;
         expense.expense_date = data.expense_date;
@@ -32,22 +41,22 @@ export async function createNewExpense(profile: Profile, data: Expense): Promise
         await expenseRepository.save(expense);
         await profileRepository.save(profile);
 
-    } catch(error) {
+        return expense;
+
+    } catch (error: any) {
         expenseLogChannel.log("error",`${error}`);
-        return null;
+        throw new HTTPInternalSeverError("Error when creating new expense");
     }
-    return expense;
+
 }
 
-export async function patchExistingExpense(expense: Expense | null, profile: Profile, data: Expense): Promise<null | Expense> {
+export async function patchExistingExpense(expense: Expense | null, profile: Profile, data: Expense): Promise<Expense> {
     if (expense === null) {
-        expenseLogChannel.log("info",`Expense does not exist`);
-        return null;
+        throw new HTTPNotFoundError(`Expense does not exist`);
     }
 
     if (expense.profile.id !== profile.id) {
-        expenseLogChannel.log("info",`You can only patch your own expense`);
-        return null;
+        throw new HTTPBadRequestError(`You can only patch your own expense`);
     }
 
     try {
@@ -57,30 +66,32 @@ export async function patchExistingExpense(expense: Expense | null, profile: Pro
         expense.category = data.category;
 
         await expenseRepository.save(expense);
+
+        return expense;
+
     } catch (error) {
         expenseLogChannel.log("error",`${error}`);
-        return null
+        throw new HTTPInternalSeverError("Error when patching expense");
     }
-    return expense;
 }
 
-export async function deleteExistingExpense(expense: Expense | null, profile: Profile): Promise<null | Expense> {
+export async function deleteExistingExpense(expense: Expense | null, profile: Profile): Promise<Expense> {
     if (expense === null) {
-        expenseLogChannel.log("info",`Expense does not exist`);
-        return null;
+        throw new HTTPNotFoundError(`Expense does not exist`);
+    }
+
+    if (expense.profile.id !== profile.id) {
+        throw new HTTPBadRequestError(`You can only delete your own expense`);
     }
 
     try {
-        if (expense.profile.id !== profile.id) {
-            expenseLogChannel.log("info",`You can only patch your own expense`);
-            return null;
-        }
         await expenseRepository.remove(expense);
+
+        return expense;
 
     } catch(error) {
         expenseLogChannel.log("error",`${error}`);
-        return null;
-    }
+        throw new HTTPInternalSeverError("Error when deleting expense");
 
-    return expense;
+    }
 }

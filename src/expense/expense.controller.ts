@@ -1,84 +1,166 @@
 import {Request, Response} from "express";
 import { completeKeys } from "../utils/utils"
+import expenseLogChannel from "./expense.logger";
+import httpStatusCodes from "../utils/error_handling/configs/httpStatusCodes";
 
 import { createNewExpense, deleteExistingExpense, getExpenseById, patchExistingExpense } from "./expense.manager"
-import expenseLogChannel from "./expense.logger";
+
 
 export async function getExpense(req: Request, res: Response) {
-    const expenseId = Number(req.params.id);
-    const expense = await getExpenseById(expenseId);
-    expenseLogChannel.log("info",`Retrieve expense id: ${expenseId}`);
-    return res.json(expense);
+    try {
+        const expenseId = Number(req.params.id);
+        const expense = await getExpenseById(expenseId);
+        expenseLogChannel.log("info",`Retrieve expense id: ${expenseId}`);
+        return res.json(expense);
+
+    } catch(error) {
+        expenseLogChannel.log("error", error);
+        const response = {
+            "Message": `${error.message}`,
+        }
+        return res.json(response).status(error.statusCode);
+
+    }
 }
 
 export async function addExpense(req: Request, res: Response) {
-    const data = req.body;
+    try {
+        const data = req.body;
 
-    const keyFields = ["amount", "expense_date", "description", "category"];
+        const keyFields = ["amount", "expense_date", "description", "category"];
 
-    if (!completeKeys(keyFields,data)) {
-        return res.send("Incomplete data");
+        if (!completeKeys(keyFields,data)) {
+            const response = {
+                "Message": "Incomplete data",
+            }
+            return res.json(response).status(httpStatusCodes.BAD_REQUEST);
+        }
+
+        if (!res.locals.currentProfile) {
+            const response = {
+                "Message": "You need to be authenticated",
+            }
+            return res.json(response).status(httpStatusCodes.ACCESS_DENIED);
+        }
+        const profile = res.locals.currentProfile;
+
+        const expense = await createNewExpense(profile,data);
+
+        if (!expense) {
+            const response = {
+                "Message": "Error adding expense",
+            }
+            return res.json(response).status(httpStatusCodes.INTERNAL_SERVER_ERROR);
+        }
+
+        expenseLogChannel.log("info",`Added expense id: ${expense.id}`);
+
+        const response = {
+            "Message": "Expense added",
+            "Expense id": `${expense.id}`,
+        }
+
+        return res.json(response).status(httpStatusCodes.OK);
+
+    } catch(error) {
+        expenseLogChannel.log("error", error);
+        const response = {
+            "Message": `${error.message}`,
+        }
+        return res.json(response).status(error.statusCode);
+
     }
 
-    if (!res.locals.currentProfile) {
-        return res.send("You need to be authenticated")
-    }
-    const profile = res.locals.currentProfile;
-
-    const expense = await createNewExpense(profile,data);
-
-    if (!expense) {
-        return res.send("Error adding expense")
-    }
-
-    expenseLogChannel.log("info",`Added expense id: ${expense.id}`);
-
-    return res.send("Expense added")
 }
 
 export async function patchExpense(req: Request, res: Response) {
-    const data = req.body;
+    try {
+        const data = req.body;
 
-    const keyFields = ["amount", "expense_date", "description", "category", "id"];
+        const keyFields = ["amount", "expense_date", "description", "category", "id"];
 
-    if (!completeKeys(keyFields,data)) {
-        return res.send("Incomplete data");
+        if (!completeKeys(keyFields,data)) {
+            const response = {
+                "Message": "Incomplete data",
+            }
+            return res.json(response).status(httpStatusCodes.BAD_REQUEST);
+        }
+
+        if (!res.locals.currentProfile) {
+            const response = {
+                "Message": "You need to be authenticated",
+            }
+            return res.json(response).status(httpStatusCodes.ACCESS_DENIED);
+        }
+
+        const profile = res.locals.currentProfile;
+
+        const expenseId = data.id;
+        const expense = await getExpenseById(expenseId);
+        const updatedExpense = await patchExistingExpense(expense, profile, data);
+
+        if (!updatedExpense) {
+            const response = {
+                "Message": "Failed to patch expense",
+            }
+            return res.json(response).status(httpStatusCodes.INTERNAL_SERVER_ERROR);
+        }
+
+        expenseLogChannel.log("info",`Updated expense id: ${updatedExpense.id}`);
+
+        const response = {
+            "Message": "Patched Expense",
+            "Expense id": `${updatedExpense.id}`,
+        }
+
+        return res.json(response).status(httpStatusCodes.OK);
+
+    } catch (error: any) {
+        expenseLogChannel.log("error", error);
+        const response = {
+            "Message": `${error.message}`,
+        }
+        return res.json(response).status(error.statusCode);
     }
-
-    if (!res.locals.currentProfile) {
-        return res.send("You need to be authenticated")
-    }
-    const profile = res.locals.currentProfile;
-
-    const expenseId = data.id;
-    const expense = await getExpenseById(expenseId);
-    const updatedExpense = await patchExistingExpense(expense, profile, data);
-
-    if (!updatedExpense) {
-        return res.send("Failed to patch expense")
-    }
-
-    expenseLogChannel.log("info",`Updated expense id: ${updatedExpense.id}`);
-
-    return res.send("Patched Expense")
 }
 
 export async function deleteExpense(req: Request, res: Response) {
-    if (!res.locals.currentProfile) {
-        return res.send("You need to be authenticated")
+    try {
+        if (!res.locals.currentProfile) {
+            const response = {
+                "Message": "You need to be authenticated",
+            }
+            return res.json(response).status(httpStatusCodes.ACCESS_DENIED);
+        }
+
+        const profile = res.locals.currentProfile;
+
+        const expenseId = Number(req.params.id);
+        const expense = await getExpenseById(expenseId);
+
+        const deletedExpense = await deleteExistingExpense(expense, profile);
+
+        if (!deletedExpense) {
+            const response = {
+                "Message": "Error when deleting expense",
+            }
+            return res.json(response).status(httpStatusCodes.INTERNAL_SERVER_ERROR);
+        }
+
+        expenseLogChannel.log("info",`Updated expense id: ${deletedExpense.id}`);
+
+        const response = {
+            "Message": "Deleted Expense",
+            "Expense id": `${deletedExpense.id}`,
+        }
+
+        return res.json(response).status(httpStatusCodes.OK);
+
+    } catch(error: any) {
+        expenseLogChannel.log("error", error);
+        const response = {
+            "Message": `${error.message}`,
+        }
+        return res.json(response).status(error.statusCode);
     }
-    const profile = res.locals.currentProfile;
-
-    const expenseId = Number(req.params.id);
-    const expense = await getExpenseById(expenseId);
-
-    const deletedExpense = await deleteExistingExpense(expense, profile);
-
-    if (!deletedExpense) {
-        return res.send("Error when deleting expense")
-    }
-
-    expenseLogChannel.log("info",`Updated expense id: ${deletedExpense.id}`);
-
-    return res.send("Delete Expense")
 }
