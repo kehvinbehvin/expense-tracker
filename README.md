@@ -1,10 +1,22 @@
-# TypeORM project
+# Expense Tracker
 
-Steps to run this project:
+# Steps to run this project without docker
 
-1. Run `npm i` command
-2. Setup database settings inside `data-source.ts` file
-3. Run `npm dev` command
+1. Run `npm install` command
+2. Set up a database
+3. Setup database settings inside `data-source.ts` file
+4. Create .env file
+5. Run `npm run dev` at project root
+
+# Building docker image
+- docker login
+- docker build . -t kehvinbehvin/expensetracker:<commit>
+
+# Test docker image
+- docker run -p 3000:3000 -d --env-file ./.env kehvinbehvin/expensetracker:latest
+
+# Push image to registry
+- docker push kehvinbehvin/expensetracker:<commit>
 
 # Modules descriptions
 
