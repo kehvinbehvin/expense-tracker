@@ -2,8 +2,8 @@ import { AppDataSource } from "../data-source";
 import { User } from "./entity/User"
 import { Profile } from "../user_profile/entity/User_profile"
 import userLogger from "./user.logger";
-import { HTTPNotFoundError } from "src/utils/error_handling/src/HTTPNotFoundError";
-import { HTTPInternalSeverError } from "src/utils/error_handling/src/HTTPInternalSeverError";
+import { HTTPNotFoundError } from "../utils/error_handling/src/HTTPNotFoundError";
+import { HTTPInternalSeverError } from "../utils/error_handling/src/HTTPInternalSeverError";
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 require("dotenv").config();
@@ -100,7 +100,7 @@ async function setUserData(user: User, data: User): Promise<User> {
 
 export async function login(user: User, password: string): Promise<string | null> {
     try {
-        const successfulLogin = await bcrypt.compare(user.password, password);
+        const successfulLogin = await bcrypt.compare(password, user.password);
         if (!successfulLogin) {
             return null
         } 

@@ -1,11 +1,11 @@
 import {NextFunction, Request, Response} from "express";
-import httpStatusCodes from "src/utils/error_handling/configs/httpStatusCodes";
+import httpStatusCodes from "../utils/error_handling/configs/httpStatusCodes";
 import {HTTPBadRequestError} from "../utils/error_handling/src/HTTPBadRequestError";
 import { completeKeys } from "../utils/utils"
 import userLogger from "./user.logger";
 
 import { getUserById, createUser, updateUser, removeUser, getUserByEmail, login } from "./user.manager"
-import { HTTPAccessDeniedError } from "src/utils/error_handling/src/HTTPAccessDeniedError";
+import { HTTPAccessDeniedError } from "../utils/error_handling/src/HTTPAccessDeniedError";
 
 
 export async function getUser(req: Request, res: Response, next: NextFunction) {
