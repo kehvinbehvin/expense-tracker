@@ -1,6 +1,6 @@
-import { HTTPBadRequestError } from "src/utils/error_handling/src/HTTPBadRequestError";
-import { HTTPInternalSeverError } from "src/utils/error_handling/src/HTTPInternalSeverError";
-import { HTTPNotFoundError } from "src/utils/error_handling/src/HTTPNotFoundError";
+import { HTTPBadRequestError } from "../utils/error_handling/src/HTTPBadRequestError";
+import { HTTPInternalSeverError } from "../utils/error_handling/src/HTTPInternalSeverError";
+import { HTTPNotFoundError } from "../utils/error_handling/src/HTTPNotFoundError";
 import { AppDataSource } from "../data-source";
 import { Profile } from "../user_profile/entity/User_profile";
 import { Payable } from "./entity/Payable";

@@ -2,10 +2,10 @@ import { Request, Response, NextFunction } from "express";
 import { completeKeys } from "../utils/utils"
 import { createNewPayable, getPayableById, patchExistingPayable, deleteExistingPayable } from "../payable/payable.manager";
 import payableLogChannel from "./payable.logger";
-import { HTTPBadRequestError } from "src/utils/error_handling/src/HTTPBadRequestError";
-import { HTTPAccessDeniedError } from "src/utils/error_handling/src/HTTPAccessDeniedError";
-import { HTTPInternalSeverError } from "src/utils/error_handling/src/HTTPInternalSeverError";
-import httpStatusCodes from "src/utils/error_handling/configs/httpStatusCodes";
+import { HTTPBadRequestError } from "../utils/error_handling/src/HTTPBadRequestError";
+import { HTTPAccessDeniedError } from "../utils/error_handling/src/HTTPAccessDeniedError";
+import { HTTPInternalSeverError } from "../utils/error_handling/src/HTTPInternalSeverError";
+import httpStatusCodes from "../utils/error_handling/configs/httpStatusCodes";
 
 export async function getPayable(req: Request, res: Response, next: NextFunction) {
     try {
