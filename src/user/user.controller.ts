@@ -1,112 +1,148 @@
-import {Request, Response} from "express";
+import {NextFunction, Request, Response} from "express";
+import httpStatusCodes from "src/utils/error_handling/configs/httpStatusCodes";
+import {HTTPBadRequestError} from "../utils/error_handling/src/HTTPBadRequestError";
 import { completeKeys } from "../utils/utils"
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
-require("dotenv").config();
 import userLogger from "./user.logger";
 
-import { getUserById, createUser, updateUser, removeUser, getUserByEmail } from "./user.manager"
+import { getUserById, createUser, updateUser, removeUser, getUserByEmail, login } from "./user.manager"
+import { HTTPAccessDeniedError } from "src/utils/error_handling/src/HTTPAccessDeniedError";
 
 
-export async function getUser(req: Request, res: Response) {
-    const userId = Number(req.params.id);
-    const user = await getUserById(userId);
+export async function getUser(req: Request, res: Response, next: NextFunction) {
+    try {
+        if (!res.locals.currentUser) {
+            return next(new HTTPAccessDeniedError("You need to be authenticated"));
+        }
 
-    if (!user) {
-        return res.json("User does not exist")
+        const userId = Number(req.params.id);
+        const user = await getUserById(userId);
+
+        userLogger.log("info",`Retrieved user id: ${userId}`);
+
+        return res.json(user);
+
+    } catch (error: any) {
+        userLogger.log("error", error);
+        return next(error);
     }
-
-    return res.json(user);
 }
 
-export async function registerUser(req: Request, res: Response) {
-    const data = req.body;
-
-    if (Object.keys(data).length === 0) {
-        return res.send("Empty body")
-    }
-
-    const keyFields = ["firstName", "lastName","email","password"];
-    if (!completeKeys(keyFields,data)) {
-        return res.send("Incomplete data");
-    }
-
-    // TODO Add check for existing users with same email
+export async function registerUser(req: Request, res: Response, next: NextFunction) {
     try {
+        const data = req.body;
+
+        const keyFields = ["firstName", "lastName","email","password"];
+
+        if (!completeKeys(keyFields,data)) {
+            return next(new HTTPBadRequestError("Incomplete data"));
+        }
+
+        // TODO Add check for existing users with same email
         const user = await createUser(data);
+
         userLogger.log("info",`${user.email} created`);
-        return res.send("Added");
+
+        const response = {
+            "Message": "User added",
+            "User id": `${user.id}`,
+        }
+
+        return res.json(response).status(httpStatusCodes.OK);
+
     } catch (error) {
         userLogger.log("error", error);
-        return res.send("User could not be created")
+        return next(error);
     }
 }
 
-export async function deleteUser(req: Request, res: Response) {
-    const userId = Number(req.params.id);
-    const user = await getUserById(userId);
-    const isRemoved = await removeUser(user);
+export async function deleteUser(req: Request, res: Response, next: NextFunction) {
+    try {
+        const userId = Number(req.params.id);
 
-    if (!isRemoved) {
-        return res.send("Could not delete user")
-    }
-
-    return res.send("Deleted User");
-}
-
-export async function patchUser(req: Request, res: Response) {
-    const data = req.body;
-
-    const keyFields = ["id", "firstName", "lastName","email","password"];
-
-    if (!completeKeys(keyFields,data)) {
-        return res.send("Incomplete data");
-    }
-
-    const userId = Number(data.id);
-    const user = await getUserById(userId);
-    const isUpdated = await updateUser(user, data);
-
-    if (!isUpdated) {
-        return res.json("Patch unsuccessful")
-    }
-
-    return res.json("Patched successfully");
-}
-
-export async function login(req: Request, res: Response) {
-    const data = req.body;
-
-    const keyFields = ["email","password"];
-
-    if (!completeKeys(keyFields,data)) {
-        return res.send("Incomplete data");
-    }
-
-    const user = await getUserByEmail(data.email);
-
-    if (user === null) {
-        return res.send("User does not exist")
-    }
-
-    if (await bcrypt.compare(data.password, user.password)) {
-        const token = jwt.sign(
-            { user_id: user.id },
-            process.env.TOKEN_KEY,
-            {
-                expiresIn: process.env.TOKEN_EXPIRY,
-            }
-        );
-
-        const output = {
-            "access_token": token,
+        if (!res.locals.currentUser) {
+            return next(new HTTPAccessDeniedError("You need to be authenticated"));
         }
+        
+        const removedUser = await removeUser(userId);
+
+        userLogger.log("info",`Removed user id: ${removedUser.id}`)
+    
+        const response = {
+            "Message": "User removed",
+            "User id": `${removedUser.id}`,
+        }
+    
+        return res.json(response).status(httpStatusCodes.OK);
+
+    } catch (error: any) {
+        userLogger.log("error", error);
+        return next(error);
+    }  
+}
+
+export async function patchUser(req: Request, res: Response, next: NextFunction) {
+    try {
+        const data = req.body;
+
+        const keyFields = ["id", "firstName", "lastName","email","password"];
+    
+        if (!completeKeys(keyFields,data)) {
+            return next(new HTTPBadRequestError("Incomplete data"));
+        }
+
+        if (!res.locals.currentUser) {
+            return next(new HTTPAccessDeniedError("You need to be authenticated"));
+        }
+    
+        const userId = Number(data.id);
+        const user = await getUserById(userId);
+        const updatedUser = await updateUser(user, data);
+
+        userLogger.log("info",`Updated user id: ${updatedUser.id}`)
+
+        const response = {
+            "Message": "User updated",
+            "User id": `${updatedUser.id}`,
+        }
+    
+        return res.json(response).status(httpStatusCodes.OK);
+
+    } catch (error: any) {
+        userLogger.log("error", error);
+        return next(error);
+    }
+    
+}
+
+export async function profilelogin(req: Request, res: Response, next: NextFunction) {
+    try {
+        const data = req.body;
+
+        const keyFields = ["email","password"];
+
+        if (!completeKeys(keyFields,data)) {
+            return next(new HTTPBadRequestError("Incomplete data"));
+        }
+
+        const user = await getUserByEmail(data.email);
+
+        const token = await login(user, data.password);
+
+        if (!token) {
+            return next(new HTTPAccessDeniedError("Wrong password or email"));
+        }
+
         userLogger.log("info",`${user.email} logged in`);
 
-        return res.status(200).json(output);
+        const response = {
+            "Access token": token,
+        }
+
+        return res.json(response).status(httpStatusCodes.OK);
+
+    } catch (error: any) {
+        userLogger.log("error", error);
+        return next(error);
     }
-
-    return res.send("Wrong email or password");
-
 }
 

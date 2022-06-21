@@ -2,13 +2,17 @@ import { AppDataSource } from "../data-source";
 import { User } from "./entity/User"
 import { Profile } from "../user_profile/entity/User_profile"
 import userLogger from "./user.logger";
+import { HTTPNotFoundError } from "src/utils/error_handling/src/HTTPNotFoundError";
+import { HTTPInternalSeverError } from "src/utils/error_handling/src/HTTPInternalSeverError";
 const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+require("dotenv").config();
 
 const userRepository = AppDataSource.getRepository(User);
 const profileRepository = AppDataSource.getRepository(Profile);
 
-export async function getUserById(id: number): Promise<null | User> {
-    return await userRepository.findOne({
+export async function getUserById(id: number): Promise<User> {
+    const user = await userRepository.findOne({
         where: {
             id: id
         },
@@ -16,81 +20,106 @@ export async function getUserById(id: number): Promise<null | User> {
             profile: true,
         },
     })
+
+    if (!user) {
+        throw new HTTPNotFoundError(`User id ${id} does not exist`);
+    }
+
+    return user
 }
 
-export async function getUserByEmail(email: string): Promise<null | User> {
-    return await userRepository.findOneBy({
+export async function getUserByEmail(email: string): Promise<User> {
+    const user = await userRepository.findOneBy({
         email: email,
     });
+
+    if (!user) {
+        throw new HTTPNotFoundError(`User ${email} does not exist`);
+    }
+
+    return user
 }
 
 export async function createUser(data: User): Promise<User> {
-
-    const user = new User()
-    await setUserData(user,data);
-
-    const profile = new Profile();
-    profile.user = user
-
     try {
+        const user = new User()
+
+        await setUserData(user,data);
+
+        const profile = new Profile();
+        profile.user = user
+
         await profileRepository.save(profile)
-    } catch(error) {
-        userLogger.log("error",`${error}`);
-        throw new Error(error);
-    }
 
-    user.profile = profile;
+        user.profile = profile;
 
-    try {
         await userRepository.save(user)
-    } catch(error) {
-        userLogger.log("error",`${error}`);
-        throw new Error(error);
-    }
 
-    return user;
+        return user;
+
+    } catch(error: any) {
+        userLogger.log("error",`${error}`);
+        throw new HTTPInternalSeverError("Error when creating new user");
+    }
 }
 
-export async function updateUser(user: User | null, data: User): Promise<boolean> {
-    if (user === null) {
-        return false;
-    }
-
+export async function updateUser(user: User, data: User): Promise<User> {
     return setUserData(user, data);
 }
 
-export async function removeUser(user: User | null): Promise<boolean> {
+export async function removeUser(userId: number): Promise<User> {
     try {
-        if (user === null) {
-            return false;
-        }
-
+        const user = await getUserById(userId);
         // @ts-ignore
         // TODO Resolve this
-        await userRepository.remove(user);
-        return true
+        const deletedUser = await userRepository.remove(user);
+        return deletedUser;
 
-    } catch(error) {
-        console.log(error)
-        return false;
+    } catch(error: any) {
+        userLogger.log("error",`${error}`);
+        throw new HTTPInternalSeverError("Error when deleting User");
     }
 }
 
-async function setUserData(user: User, data: User): Promise<boolean> {
-    user.firstName = data.firstName
-    user.lastName = data.lastName
-    user.email = data.email
-    user.password = encryptPassword(data.password)
-
+async function setUserData(user: User, data: User): Promise<User> {
     try {
-        await userRepository.save(user);
+        user.firstName = data.firstName
+        user.lastName = data.lastName
+        user.email = data.email
+        user.password = encryptPassword(data.password)
+        const updatedUser = await userRepository.save(user);
 
-    } catch (error) {
+        return updatedUser;
+
+    } catch (error: any) {
         userLogger.log("error",`${error}`);
-        return false;
+        throw new HTTPInternalSeverError("Error when deleting User");
 
     }
-    return true;
+}
+
+export async function login(user: User, password: string): Promise<string | null> {
+    try {
+        const successfulLogin = await bcrypt.compare(user.password, password);
+        if (!successfulLogin) {
+            return null
+        } 
+
+        const token = jwt.sign(
+            { user_id: user.id },
+            process.env.TOKEN_KEY,
+            {
+                expiresIn: process.env.TOKEN_EXPIRY,
+            }
+        );
+
+        return token
+
+    } catch (error: any) {
+        userLogger.log("error",`${error}`);
+        throw new HTTPInternalSeverError("Error during login");
+    }
+    
 }
 
 function encryptPassword(password: string): string {
