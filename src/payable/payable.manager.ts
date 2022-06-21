@@ -1,3 +1,6 @@
+import { HTTPBadRequestError } from "src/utils/error_handling/src/HTTPBadRequestError";
+import { HTTPInternalSeverError } from "src/utils/error_handling/src/HTTPInternalSeverError";
+import { HTTPNotFoundError } from "src/utils/error_handling/src/HTTPNotFoundError";
 import { AppDataSource } from "../data-source";
 import { Profile } from "../user_profile/entity/User_profile";
 import { Payable } from "./entity/Payable";
@@ -6,8 +9,8 @@ import payableLogChannel from "./payable.logger";
 const profileRepository = AppDataSource.getRepository(Profile);
 const payableRepository = AppDataSource.getRepository(Payable);
 
-export async function getPayableById(id: number): Promise<null | Payable> {
-    return await payableRepository.findOne({
+export async function getPayableById(id: number): Promise<Payable> {
+    const payable = await payableRepository.findOne({
         where: {
             id: id,
         },
@@ -15,12 +18,18 @@ export async function getPayableById(id: number): Promise<null | Payable> {
             profile: true,
         },
     })
+
+    if (!payable) {
+        throw new HTTPNotFoundError(`Payable id ${id} does not exist`);
+    }
+
+    return payable
 }
 
-export async function createNewPayable(profile: Profile, data: Payable): Promise<null | Payable> {
-    const payable = new Payable();
-
+export async function createNewPayable(profile: Profile, data: Payable): Promise<Payable> {
     try {
+        const payable = new Payable();
+
         payable.profile = profile;
         payable.amount = data.amount;
         payable.transaction_date = data.transaction_date;
@@ -34,22 +43,22 @@ export async function createNewPayable(profile: Profile, data: Payable): Promise
         await payableRepository.save(payable);
         await profileRepository.save(profile);
 
-    } catch(error) {
+        return payable;
+
+    } catch(error: any) {
         payableLogChannel.log("error",`${error}`);
-        return null;
+        throw new HTTPInternalSeverError("Error when creating new payable");
     }
-    return payable;
 }
 
-export async function patchExistingPayable(payable: Payable | null, profile: Profile, data: Payable): Promise<null | Payable> {
+export async function patchExistingPayable(payable: Payable | null, profile: Profile, data: Payable): Promise<Payable> {
     if (payable === null) {
-        payableLogChannel.log("info",`Expense does not exist`);
-        return null;
+        throw new HTTPNotFoundError(`Payable does not exist`);
+
     }
 
     if (payable.profile.id !== profile.id) {
-        payableLogChannel.log("info",`You can only patch your own expense`);
-        return null;
+        throw new HTTPBadRequestError(`You can only patch your own payable`);
     }
 
     try {
@@ -62,30 +71,33 @@ export async function patchExistingPayable(payable: Payable | null, profile: Pro
         payable.creditor = data.creditor;
 
         await payableRepository.save(payable);
+
+        return payable;
+
     } catch (error) {
         payableLogChannel.log("error",`${error}`);
-        return null
+        throw new HTTPInternalSeverError("Error when patching payable");
+
     }
-    return payable;
 }
 
-export async function deleteExistingPayable(payable: Payable | null, profile: Profile): Promise<null | Payable> {
+export async function deleteExistingPayable(payable: Payable | null, profile: Profile): Promise<Payable> {
     if (payable === null) {
-        payableLogChannel.log("info",`payable does not exist`);
-        return null;
+        throw new HTTPNotFoundError(`Payable does not exist`);
+    }
+
+    if (payable.profile.id !== profile.id) {
+        throw new HTTPBadRequestError(`You can only delete your own payable`);
     }
 
     try {
-        if (payable.profile.id !== profile.id) {
-            payableLogChannel.log("info",`You can only patch your own payable`);
-            return null;
-        }
         await payableRepository.remove(payable);
 
-    } catch(error) {
-        payableLogChannel.log("error",`${error}`);
-        return null;
-    }
+        return payable;
 
-    return payable;
+    } catch(error: any) {
+        payableLogChannel.log("error",`${error}`);
+        throw new HTTPInternalSeverError("Error when deleting Payable");
+
+    }
 }
