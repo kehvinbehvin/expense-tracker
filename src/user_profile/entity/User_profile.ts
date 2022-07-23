@@ -1,17 +1,17 @@
 import { Entity, PrimaryGeneratedColumn, Column, BaseEntity, OneToMany, OneToOne } from "typeorm"
 import { Expense } from "../../expense/entity/Expense"
-import { User } from "../../user/entity/User"
+import { ExpUser } from "../../user/entity/ExpUser"
 import { Payable } from "../../payable/entity/Payable"
 import { Receivable } from "../../receivable/entity/Receivable";
 
-@Entity()
+@Entity({name: "profile"})
 export class Profile extends BaseEntity {
 
     @PrimaryGeneratedColumn()
     id: number
 
-    @OneToOne(() => User, (user) => user.profile)
-    user: User
+    @OneToOne(() => ExpUser, (user) => user.profile)
+    user: ExpUser
 
     @OneToMany(() => Expense, (expense) => expense.profile)
     expense: Expense[]

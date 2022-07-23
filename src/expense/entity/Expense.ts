@@ -2,22 +2,22 @@ import { Entity, PrimaryGeneratedColumn, Column, BaseEntity,ManyToOne } from "ty
 import { Profile } from "../../user_profile/entity/User_profile"
 
 
-@Entity()
+@Entity({name: "expense"})
 export class Expense extends BaseEntity {
 
     @PrimaryGeneratedColumn()
     id: number
 
-    @Column({ type: "float" })
+    @Column({ nullable: true, type: "float" })
     amount: number
 
-    @Column({ type: "datetime" })
+    @Column({ nullable: true, type: "timestamp" })
     expense_date: string // 'YYYY-MM-DD hh:mm:ss'
 
-    @Column("varchar", { length: 200 })
+    @Column("varchar", { nullable: true, length: 200 })
     description: string
 
-    @Column("varchar", { length: 200 })
+    @Column("varchar", { nullable: true, length: 200 })
     category: string
 
     @ManyToOne(() => Profile, (profile) => profile.expense)

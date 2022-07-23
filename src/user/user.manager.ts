@@ -1,5 +1,5 @@
 import { AppDataSource } from "../data-source";
-import { User } from "./entity/User"
+import { ExpUser } from "./entity/ExpUser"
 import { Profile } from "../user_profile/entity/User_profile"
 import userLogger from "./user.logger";
 import { HTTPNotFoundError } from "../utils/error_handling/src/HTTPNotFoundError";
@@ -8,10 +8,10 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 require("dotenv").config();
 
-const userRepository = AppDataSource.getRepository(User);
+const userRepository = AppDataSource.getRepository(ExpUser);
 const profileRepository = AppDataSource.getRepository(Profile);
 
-export async function getUserById(id: number): Promise<User> {
+export async function getUserById(id: number): Promise<ExpUser> {
     const user = await userRepository.findOne({
         where: {
             id: id
@@ -28,7 +28,7 @@ export async function getUserById(id: number): Promise<User> {
     return user
 }
 
-export async function getUserByEmail(email: string): Promise<User> {
+export async function getUserByEmail(email: string): Promise<ExpUser> {
     const user = await userRepository.findOneBy({
         email: email,
     });
@@ -40,9 +40,9 @@ export async function getUserByEmail(email: string): Promise<User> {
     return user
 }
 
-export async function createUser(data: User): Promise<User> {
+export async function createUser(data: ExpUser): Promise<ExpUser> {
     try {
-        const user = new User()
+        const user = new ExpUser()
 
         await setUserData(user,data);
 
@@ -63,11 +63,11 @@ export async function createUser(data: User): Promise<User> {
     }
 }
 
-export async function updateUser(user: User, data: User): Promise<User> {
+export async function updateUser(user: ExpUser, data: ExpUser): Promise<ExpUser> {
     return setUserData(user, data);
 }
 
-export async function removeUser(userId: number): Promise<User> {
+export async function removeUser(userId: number): Promise<ExpUser> {
     try {
         const user = await getUserById(userId);
         // @ts-ignore
@@ -77,11 +77,11 @@ export async function removeUser(userId: number): Promise<User> {
 
     } catch(error: any) {
         userLogger.log("error",`${error}`);
-        throw new HTTPInternalSeverError("Error when deleting User");
+        throw new HTTPInternalSeverError("Error when deleting ExpUser");
     }
 }
 
-async function setUserData(user: User, data: User): Promise<User> {
+async function setUserData(user: ExpUser, data: ExpUser): Promise<ExpUser> {
     try {
         user.firstName = data.firstName
         user.lastName = data.lastName
@@ -93,12 +93,12 @@ async function setUserData(user: User, data: User): Promise<User> {
 
     } catch (error: any) {
         userLogger.log("error",`${error}`);
-        throw new HTTPInternalSeverError("Error when deleting User");
+        throw new HTTPInternalSeverError("Error when deleting ExpUser");
 
     }
 }
 
-export async function login(user: User, password: string): Promise<string | null> {
+export async function login(user: ExpUser, password: string): Promise<string | null> {
     try {
         const successfulLogin = await bcrypt.compare(password, user.password);
         if (!successfulLogin) {
