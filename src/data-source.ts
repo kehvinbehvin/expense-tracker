@@ -47,6 +47,12 @@ function getDataSource() {
             entities: [ExpUser, Expense, Profile, Payable, Receivable],
             migrations: [],
             subscribers: [],
+            ssl: true,
+            extra: {
+                ssl: {
+                    rejectUnauthorized: false
+                }
+            }
         })
     }
 }
