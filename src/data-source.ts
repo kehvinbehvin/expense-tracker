@@ -42,14 +42,17 @@ function getDataSource() {
         return new DataSource({
             type: "postgres",
             url: DATABASE_URL,
-            username: DB_USERNAME_POSTGRES,
-            password: DB_PASSWORD_POSTGRES,
-            database: DB_DATABASE_POSTGRES,
             synchronize: true,
             logging: true,
             entities: [ExpUser, Expense, Profile, Payable, Receivable],
             migrations: [],
             subscribers: [],
+            ssl: true,
+            extra: {
+                ssl: {
+                    rejectUnauthorized: false
+                }
+            }
         })
     }
 }
