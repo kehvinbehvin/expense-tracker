@@ -8,6 +8,10 @@ import receivableRoutes from "./receivable/receivable.routes";
 import routeLogger from "./utils/logger/src/routeLogger.middleware";
 import errorHandler from "./utils/error_handling/errorHandler.middleware";
 import logger from "./utils/logger/src/logger";
+require("dotenv").config();
+
+const { PORT } = process.env
+
 
 const app = express();
 
@@ -27,6 +31,6 @@ AppDataSource.initialize().then(async () => {
 }).catch(error => console.log(error))
 
 
-app.listen(3000, () => {
-    logger.log("info","Application listening at port 3000")
+app.listen(PORT, () => {
+    logger.log("info",`Application listening at port ${PORT}`)
 })
