@@ -29,7 +29,7 @@ async function getExpenseByDuration(profile: Profile, start_date: string, end_da
 
         const expenses = expenseRepository.createQueryBuilder("expense")
             .innerJoin("expense.profile","profile")
-            .where("user.profile = :profileId", { profileId })
+            .where("expuser.profile = :profileId", { profileId })
             .where("expense.expense_date BETWEEN :start_date AND :end_date", {start_date: start_date, end_date: end_date})
             .getMany()
     
@@ -46,7 +46,7 @@ async function getReceivablesByDuration(profile: Profile, start_date: string, en
 
         const receivable = receivableRepository.createQueryBuilder("receivable")
             .innerJoin("receivable.profile","profile")
-            .where("user.profile = :profileId", { profileId })
+            .where("expuser.profile = :profileId", { profileId })
             .where("receivable.transaction_date BETWEEN :start_date AND :end_date", {start_date: start_date, end_date: end_date})
             .getMany()
     
