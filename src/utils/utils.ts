@@ -9,11 +9,11 @@ function completeKeys(keyFields: string[], data: object) {
 
 function isWhiteListed(keyFields: string[], data: string[]) {
     for (const item of data) {
-        if (keyFields.includes(item)) {
-            return true;
+        if (!keyFields.includes(item)) {
+            return false;
         }
     }
-    return false;
+    return true;
 }
 
 export { completeKeys, isWhiteListed }
