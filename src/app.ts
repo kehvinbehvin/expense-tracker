@@ -10,9 +10,6 @@ import errorHandler from "./utils/error_handling/errorHandler.middleware";
 import logger from "./utils/logger/src/logger";
 require("dotenv").config();
 
-const { PORT } = process.env
-
-
 const app = express();
 
 app.use(express.json());
@@ -30,7 +27,4 @@ AppDataSource.initialize().then(async () => {
     logger.log("info","Database connected")
 }).catch(error => console.log(error))
 
-
-app.listen(PORT, () => {
-    logger.log("info",`Application listening at port ${PORT}`)
-})
+export default app
