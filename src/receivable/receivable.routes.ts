@@ -1,7 +1,7 @@
 import Express from "express";
 import { getReceivable, addReceivable, deleteReceivable, updateReceivable } from "./receivable.controller"
 import { verify } from "../authentication/auth.middleware"
-import { profile } from "../user_profile/user_profile.middleware";
+import { profile } from "../profile/profile.middleware";
 
 function receivableRoutes(app: Express.Application) {
     app.get("/api/v0/receivable/:id", verify, profile, getReceivable)

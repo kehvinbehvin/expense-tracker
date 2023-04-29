@@ -1,5 +1,5 @@
 import { AppDataSource } from "../data-source";
-import { Profile } from "../user_profile/entity/User_profile";
+import { Profile } from "../profile/entity/Profile";
 import { Receivable} from "./entity/Receivable";
 import receivableLogChannel from "./receivable.logger";
 import {HTTPNotFoundError} from "../utils/error_handling/src/HTTPNotFoundError";

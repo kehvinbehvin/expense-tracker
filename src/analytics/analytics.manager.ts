@@ -1,11 +1,11 @@
 import { AppDataSource } from "../data-source";
 import { Expense } from "../expense/entity/Expense";
-import { Profile } from "../user_profile/entity/User_profile"
 import { Receivable } from "../receivable/entity/Receivable";
 import {HTTPBadRequestError} from "../utils/error_handling/src/HTTPBadRequestError";
 import {HTTPInternalSeverError} from "../utils/error_handling/src/HTTPInternalSeverError";
 import analyticsLogChannel from "./analytics.logger";
 import transactionType from "../configs";
+import { Profile } from "../profile/entity/Profile"
 
 const expenseRepository = AppDataSource.getRepository(Expense);
 const receivableRepository = AppDataSource.getRepository(Receivable);

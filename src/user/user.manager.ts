@@ -1,6 +1,6 @@
 import { AppDataSource } from "../data-source";
 import { User } from "./entity/User"
-import { Profile } from "../user_profile/entity/User_profile"
+import { Profile } from "../profile/entity/Profile"
 import userLogger from "./user.logger";
 import { HTTPNotFoundError } from "../utils/error_handling/src/HTTPNotFoundError";
 import { HTTPInternalSeverError } from "../utils/error_handling/src/HTTPInternalSeverError";

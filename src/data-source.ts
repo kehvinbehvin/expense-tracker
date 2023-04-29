@@ -6,7 +6,7 @@ import fs from "fs"
 // eg: import { User } from "./<service>/<schemaFile>"
 import { User } from "./user/entity/User"
 import { Expense } from "./expense/entity/Expense"
-import { Profile } from "./user_profile/entity/User_profile"
+import { Profile } from "./profile/entity/Profile"
 import { Payable } from "./payable/entity/Payable"
 import { Receivable } from "./receivable/entity/Receivable";
 

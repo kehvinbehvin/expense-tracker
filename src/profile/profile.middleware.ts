@@ -1,6 +1,6 @@
 import { getUserById } from "../user/user.manager";
 import { Request, Response, NextFunction } from "express";
-import { getProfileById } from "./user_profile.manager";
+import { getProfileById } from "./profile.manager";
 
 async function profile(req: Request, res: Response, next: NextFunction) {
     const userId = Number(res.locals.currentUserId);

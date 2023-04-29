@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, BaseEntity, OneToMany, OneToOne } from "typeorm"
+import { Entity, PrimaryGeneratedColumn, BaseEntity, OneToMany, OneToOne } from "typeorm"
 import { Expense } from "../../expense/entity/Expense"
 import { User } from "../../user/entity/User"
 import { Payable } from "../../payable/entity/Payable"

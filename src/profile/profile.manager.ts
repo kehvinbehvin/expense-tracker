@@ -1,6 +1,6 @@
 import { AppDataSource } from "../data-source";
-import { Profile } from "../user_profile/entity/User_profile"
 import { HTTPNotFoundError } from "../utils/error_handling/src/HTTPNotFoundError";
+import { Profile } from "./entity/Profile"
 
 const profileRepository = AppDataSource.getRepository(Profile);
 

@@ -1,7 +1,7 @@
 import Express from "express";
 import { getPayable, addPayable, deletePayable, updatePayable } from "./payable.controller"
 import { verify } from "../authentication/auth.middleware"
-import {profile} from "../user_profile/user_profile.middleware";
+import {profile} from "../profile/profile.middleware";
 
 function payableRoutes(app: Express.Application) {
     app.get("/api/v0/payable/:id", verify, profile, getPayable)

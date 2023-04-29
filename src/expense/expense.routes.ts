@@ -1,7 +1,7 @@
 import Express from "express";
 import { getExpense, addExpense, deleteExpense, patchExpense } from "./expense.controller"
 import { verify } from "../authentication/auth.middleware"
-import {profile} from "../user_profile/user_profile.middleware";
+import {profile} from "../profile/profile.middleware";
 
 function expenseRoutes(app: Express.Application) {
     app.get("/api/v0/expense/:id", verify, profile, getExpense)

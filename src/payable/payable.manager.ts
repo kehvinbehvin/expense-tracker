@@ -2,7 +2,7 @@ import { HTTPBadRequestError } from "../utils/error_handling/src/HTTPBadRequestE
 import { HTTPInternalSeverError } from "../utils/error_handling/src/HTTPInternalSeverError";
 import { HTTPNotFoundError } from "../utils/error_handling/src/HTTPNotFoundError";
 import { AppDataSource } from "../data-source";
-import { Profile } from "../user_profile/entity/User_profile";
+import { Profile } from "../profile/entity/Profile";
 import { Payable } from "./entity/Payable";
 import payableLogChannel from "./payable.logger";
 

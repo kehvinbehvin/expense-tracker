@@ -1,5 +1,5 @@
 import {Entity, PrimaryGeneratedColumn, Column, BaseEntity, ManyToOne} from "typeorm"
-import { Profile } from "../../user_profile/entity/User_profile"
+import { Profile } from "../../profile/entity/Profile"
 
 @Entity()
 export class Receivable extends BaseEntity {

@@ -35,7 +35,7 @@ Receivable module
 User module
 - Manage application security related logic for users
 
-User_profile module
+Profile module
 - Manage business related logic for users
 
 Analytics module
