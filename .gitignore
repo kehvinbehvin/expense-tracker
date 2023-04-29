@@ -1,4 +1,5 @@
 .idea/
+.DS_Store
 .vscode/
 node_modules/
 build/
@@ -6,3 +7,4 @@ tmp/
 temp/
 
 .env
+private/
