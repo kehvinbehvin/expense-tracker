@@ -28,6 +28,22 @@ export async function getUser(req: Request, res: Response, next: NextFunction) {
 }
 
 export async function registerUser(req: Request, res: Response, next: NextFunction) {
+    const data = req.body;
+
+    if (Object.keys(data).length === 0) {
+        return res.send("Empty body")
+    }
+
+    const keyFields = ["firstName", "lastName","email","password"];
+    if (!completeKeys(keyFields,data)) {
+        return res.send("Incomplete data");
+    }
+
+    const user = await getUserByEmail(data.email);
+    if (user !== null) {
+        return res.send("User already exists")
+    }
+
     try {
         const data = req.body;
 
