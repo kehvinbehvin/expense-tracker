@@ -7,10 +7,16 @@ import httpStatusCodes from "../utils/error_handling/configs/httpStatusCodes";
 import transactionType from "../configs";
 import { getTractionByDuration } from "./analytics.manager";
 
+/**
+ * TODOS:
+ * - Pagination
+ * - Receivables listing
+ * - Payables listing
+ * - filter by category
+ */
 export async function getTransactionsByMonth(req: Request, res: Response, next: NextFunction) {
     try {
         const data = req.body;
-
         const keyFields = ["transaction_type","start_date", "end_date"];
 
         if (!completeKeys(keyFields,data)) {
